@@ -10,8 +10,8 @@ function exit_badly {
   exit 1
 }
 
-#Script is intend to run inside a ubuntu 18.04 container
-[[ $(lsb_release -rs) == "18.04" ]] || exit_badly "This script is for Ubuntu 18.04 only, aborting..."
+#Script is intend to run inside a ubuntu 18.04+ container
+[[ $(lsb_release -rs) == "18.04" ]] || exit_badly "This script is for Ubuntu 18.04 and up, aborting..."
 
 #Check root user
 [[ $(id -u) -eq 0 ]] || exit_badly "Please re-run as root (e.g. sudo ./path/to/this/script)"
@@ -211,3 +211,147 @@ grep -Fq 'scorelab/bugzero-gateway' /etc/apparmor.d/local/usr.lib.ipsec.charon |
 
 aa-status --enabled && invoke-rc.d apparmor reload
 
+echo
+echo "--- Configuring VPN ---"
+echo
+
+# ip_forward is for VPN
+# ip_no_pmtu_disc is for UDP fragmentation
+# others are for security
+
+grep -Fq 'scorelab/bugzero-gateway' /etc/sysctl.conf || echo '
+# https://github.com/scorelab/bugzero-gateway
+net.ipv4.ip_forward = 1
+net.ipv4.ip_no_pmtu_disc = 1
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+' >> /etc/sysctl.conf
+
+sysctl -p
+
+# these ike and esp settings are tested on Mac 10.14, iOS 12 and Windows 10
+# iOS and Mac with appropriate configuration profiles use AES_GCM_16_256/PRF_HMAC_SHA2_384/ECP_521
+# Windows 10 uses AES_GCM_16_256/PRF_HMAC_SHA2_384/ECP_384
+
+echo "config setup
+  strictcrlpolicy=yes
+  uniqueids=never
+
+conn roadwarrior
+  auto=add
+  compress=no
+  type=tunnel
+  keyexchange=ikev2
+  fragmentation=yes
+  forceencaps=yes
+  ike=aes256gcm16-prfsha384-ecp521,aes256gcm16-prfsha384-ecp384!
+  esp=aes256gcm16-ecp521,aes256gcm16-ecp384!
+  dpdaction=clear
+  dpddelay=900s
+  rekey=no
+  left=%any
+  leftid=@${VPNHOST}
+  leftcert=cert.pem
+  leftsendcert=always
+  leftsubnet=0.0.0.0/0
+  right=%any
+  rightid=%any
+  rightauth=eap-mschapv2
+  eap_identity=%any
+  rightdns=${VPNDNS}
+  rightsourceip=${VPNIPPOOL}
+  rightsendcert=never
+" > /etc/ipsec.conf
+
+echo "${VPNHOST} : RSA \"privkey.pem\"
+${VPNUSERNAME} : EAP \""${VPNPASSWORD}"\"
+" > /etc/ipsec.secrets
+
+ipsec restart
+
+
+#echo
+#echo "--- User ---"
+#echo
+#
+## user + SSH
+#
+#id -u $LOGINUSERNAME &>/dev/null || adduser --disabled-password --gecos "" $LOGINUSERNAME
+#echo "${LOGINUSERNAME}:${LOGINPASSWORD}" | chpasswd
+#adduser ${LOGINUSERNAME} sudo
+#
+#sed -r \
+#-e "s/^#?Port 22$/Port ${SSHPORT}/" \
+#-e 's/^#?LoginGraceTime (120|2m)$/LoginGraceTime 30/' \
+#-e 's/^#?PermitRootLogin yes$/PermitRootLogin no/' \
+#-e 's/^#?X11Forwarding yes$/X11Forwarding no/' \
+#-e 's/^#?UsePAM yes$/UsePAM no/' \
+#-i.original /etc/ssh/sshd_config
+#
+#grep -Fq 'scorelab/bugzero-gateway' /etc/ssh/sshd_config || echo "
+## https://github.com/scorelab/bugzero-gateway
+#MaxStartups 1
+#MaxAuthTries 2
+#UseDNS no" >> /etc/ssh/sshd_config
+#
+#if [[ $CERTLOGIN = "y" ]]; then
+#  mkdir -p /home/${LOGINUSERNAME}/.ssh
+#  chown $LOGINUSERNAME /home/${LOGINUSERNAME}/.ssh
+#  chmod 700 /home/${LOGINUSERNAME}/.ssh
+#
+#  cp /root/.ssh/authorized_keys /home/${LOGINUSERNAME}/.ssh/authorized_keys
+#  chown $LOGINUSERNAME /home/${LOGINUSERNAME}/.ssh/authorized_keys
+#  chmod 600 /home/${LOGINUSERNAME}/.ssh/authorized_keys
+#
+#  sed -r \
+#  -e "s/^#?PasswordAuthentication yes$/PasswordAuthentication no/" \
+#  -i.allows_pwd /etc/ssh/sshd_config
+#fi
+#
+#service ssh restart
+
+
+echo
+echo "--- Timezone, mail, unattended upgrades ---"
+echo
+
+timedatectl set-timezone $TZONE
+/usr/sbin/update-locale LANG=en_GB.UTF-8
+
+
+sed -r \
+-e "s/^myhostname =.*$/myhostname = ${VPNHOST}/" \
+-e 's/^inet_interfaces =.*$/inet_interfaces = loopback-only/' \
+-i.original /etc/postfix/main.cf
+
+#grep -Fq 'scorelab/bugzero-gateway' /etc/aliases || echo "
+## https://github.com/scorelab/bugzero-gateway
+#root: ${EMAILADDR}
+#${LOGINUSERNAME}: ${EMAILADDR}
+#" >> /etc/aliases
+
+newaliases
+service postfix restart
+
+
+sed -r \
+-e 's|^//Unattended-Upgrade::MinimalSteps "true";$|Unattended-Upgrade::MinimalSteps "true";|' \
+-e 's|^//Unattended-Upgrade::Mail "root";$|Unattended-Upgrade::Mail "root";|' \
+-e 's|^//Unattended-Upgrade::Automatic-Reboot "false";$|Unattended-Upgrade::Automatic-Reboot "true";|' \
+-e 's|^//Unattended-Upgrade::Remove-Unused-Dependencies "false";|Unattended-Upgrade::Remove-Unused-Dependencies "true";|' \
+-e 's|^//Unattended-Upgrade::Automatic-Reboot-Time "02:00";$|Unattended-Upgrade::Automatic-Reboot-Time "03:00";|' \
+-i /etc/apt/apt.conf.d/50unattended-upgrades
+
+echo 'APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Download-Upgradeable-Packages "1";
+APT::Periodic::AutocleanInterval "7";
+APT::Periodic::Unattended-Upgrade "1";
+' > /etc/apt/apt.conf.d/10periodic
+
+service unattended-upgrades restart
+
+source ./client-config.sh
