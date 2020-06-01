@@ -186,3 +186,28 @@ debconf-set-selections <<< "iptables-persistent iptables-persistent/autosave_v4 
 debconf-set-selections <<< "iptables-persistent iptables-persistent/autosave_v6 boolean true"
 dpkg-reconfigure iptables-persistent
 
+echo
+echo "--- Configuring RSA certificates ---"
+echo
+
+mkdir -p /etc/letsencrypt
+
+echo 'rsa-key-size = 4096
+pre-hook = /sbin/iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+post-hook = /sbin/iptables -D INPUT -p tcp --dport 80 -j ACCEPT
+renew-hook = /usr/sbin/ipsec reload && /usr/sbin/ipsec secrets
+' > /etc/letsencrypt/cli.ini
+
+certbot certonly --non-interactive --agree-tos --standalone --preferred-challenges http --email $EMAILADDR -d $VPNHOST
+
+ln -f -s /etc/letsencrypt/live/$VPNHOST/cert.pem    /etc/ipsec.d/certs/cert.pem
+ln -f -s /etc/letsencrypt/live/$VPNHOST/privkey.pem /etc/ipsec.d/private/privkey.pem
+ln -f -s /etc/letsencrypt/live/$VPNHOST/chain.pem   /etc/ipsec.d/cacerts/chain.pem
+
+grep -Fq 'scorelab/bugzero-gateway' /etc/apparmor.d/local/usr.lib.ipsec.charon || echo "
+# https://github.com/scorelab/bugzero-gateway
+/etc/letsencrypt/archive/${VPNHOST}/* r,
+" >> /etc/apparmor.d/local/usr.lib.ipsec.charon
+
+aa-status --enabled && invoke-rc.d apparmor reload
+
