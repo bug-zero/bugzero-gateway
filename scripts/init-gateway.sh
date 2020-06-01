@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 echo
-echo "=== https://github.com/scorelab/bugzero-gateway ==="
+echo "=== https://github.com/bug-zero/bugzero-gateway ==="
 echo
 
 #Exit when error - first argument is the reason of the error
@@ -204,8 +204,8 @@ ln -f -s /etc/letsencrypt/live/$VPNHOST/cert.pem    /etc/ipsec.d/certs/cert.pem
 ln -f -s /etc/letsencrypt/live/$VPNHOST/privkey.pem /etc/ipsec.d/private/privkey.pem
 ln -f -s /etc/letsencrypt/live/$VPNHOST/chain.pem   /etc/ipsec.d/cacerts/chain.pem
 
-grep -Fq 'scorelab/bugzero-gateway' /etc/apparmor.d/local/usr.lib.ipsec.charon || echo "
-# https://github.com/scorelab/bugzero-gateway
+grep -Fq 'bug-zero/bugzero-gateway' /etc/apparmor.d/local/usr.lib.ipsec.charon || echo "
+# https://github.com/bug-zero/bugzero-gateway
 /etc/letsencrypt/archive/${VPNHOST}/* r,
 " >> /etc/apparmor.d/local/usr.lib.ipsec.charon
 
@@ -219,8 +219,8 @@ echo
 # ip_no_pmtu_disc is for UDP fragmentation
 # others are for security
 
-grep -Fq 'scorelab/bugzero-gateway' /etc/sysctl.conf || echo '
-# https://github.com/scorelab/bugzero-gateway
+grep -Fq 'bug-zero/bugzero-gateway' /etc/sysctl.conf || echo '
+# https://github.com/bug-zero/bugzero-gateway
 net.ipv4.ip_forward = 1
 net.ipv4.ip_no_pmtu_disc = 1
 net.ipv4.conf.all.rp_filter = 1
@@ -292,8 +292,8 @@ ipsec restart
 #-e 's/^#?UsePAM yes$/UsePAM no/' \
 #-i.original /etc/ssh/sshd_config
 #
-#grep -Fq 'scorelab/bugzero-gateway' /etc/ssh/sshd_config || echo "
-## https://github.com/scorelab/bugzero-gateway
+#grep -Fq 'bug-zero/bugzero-gateway' /etc/ssh/sshd_config || echo "
+## https://github.com/bug-zero/bugzero-gateway
 #MaxStartups 1
 #MaxAuthTries 2
 #UseDNS no" >> /etc/ssh/sshd_config
@@ -328,8 +328,8 @@ sed -r \
 -e 's/^inet_interfaces =.*$/inet_interfaces = loopback-only/' \
 -i.original /etc/postfix/main.cf
 
-#grep -Fq 'scorelab/bugzero-gateway' /etc/aliases || echo "
-## https://github.com/scorelab/bugzero-gateway
+#grep -Fq 'bug-zero/bugzero-gateway' /etc/aliases || echo "
+## https://github.com/bug-zero/bugzero-gateway
 #root: ${EMAILADDR}
 #${LOGINUSERNAME}: ${EMAILADDR}
 #" >> /etc/aliases

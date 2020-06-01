@@ -134,8 +134,8 @@ apt-get install -y libcharon-standard-plugins || true  # 17.04+ only
 
 ln -f -s /etc/ssl/certs/DST_Root_CA_X3.pem /etc/ipsec.d/cacerts/
 
-grep -Fq 'scorelab/bugzero-gateway' /etc/ipsec.conf || echo "
-# https://github.com/scorelab/bugzero-gateway
+grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.conf || echo "
+# https://github.com/bug-zero/bugzero-gateway
 conn ikev2vpn
         ikelifetime=60m
         keylife=20m
@@ -154,8 +154,8 @@ conn ikev2vpn
         auto=add  # or auto=start to bring up automatically
 " >> /etc/ipsec.conf
 
-grep -Fq 'scorelab/bugzero-gateway' /etc/ipsec.secrets || echo "
-# https://github.com/scorelab/bugzero-gateway
+grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.secrets || echo "
+# https://github.com/bug-zero/bugzero-gateway
 \${VPNUSERNAME} : EAP \"\${VPNPASSWORD}\"
 " >> /etc/ipsec.secrets
 
