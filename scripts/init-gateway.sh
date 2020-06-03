@@ -212,7 +212,7 @@ ln -f -s /etc/vpncert/$VPNHOST/CA-cert.pem   /etc/ipsec.d/cacerts/chain.pem
 
 grep -Fq 'bug-zero/bugzero-gateway' /etc/apparmor.d/local/usr.lib.ipsec.charon || echo "
 # https://github.com/bug-zero/bugzero-gateway
-/etc/vpncert/* r,
+/etc/vpncert/$VPNHOST/* r,
 " >> /etc/apparmor.d/local/usr.lib.ipsec.charon
 
 aa-status --enabled && invoke-rc.d apparmor reload
