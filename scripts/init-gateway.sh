@@ -329,10 +329,10 @@ timedatectl set-timezone $TZONE
 /usr/sbin/update-locale LANG=en_GB.UTF-8
 
 
-sed -r \
--e "s/^myhostname =.*$/myhostname = ${VPNHOST}/" \
--e 's/^inet_interfaces =.*$/inet_interfaces = loopback-only/' \
--i.original /etc/postfix/main.cf
+#sed -r \
+#-e "s/^myhostname =.*$/myhostname = ${VPNHOST}/" \
+#-e 's/^inet_interfaces =.*$/inet_interfaces = loopback-only/' \
+#-i.original /etc/postfix/main.cf
 
 #grep -Fq 'bug-zero/bugzero-gateway' /etc/aliases || echo "
 ## https://github.com/bug-zero/bugzero-gateway
