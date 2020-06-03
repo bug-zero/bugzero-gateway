@@ -51,7 +51,7 @@ fi
 #This is used to obtain certificates from Lets Encrypt
 #For testing purpose only
 #We will create own CA later
-DEFAULTVPNHOST=${IP}
+DEFAULTVPNHOST=${IP}.sslip.io
 
 echo "Network interface: ${ETH0ORSIMILAR}"
 echo "External IP: ${IP}"
@@ -61,10 +61,8 @@ echo
 read -p "Hostname for VPN (default: ${DEFAULTVPNHOST}): " VPNHOST
 VPNHOST=${VPNHOST:-$DEFAULTVPNHOST}
 
-VPNHOSTIP=${VPNHOST}
-
-#VPNHOSTIP=$(dig -4 +short "$VPNHOST")
-#[[ -n "$VPNHOSTIP" ]] || exit_badly "Cannot resolve VPN hostname, aborting"
+VPNHOSTIP=$(dig -4 +short "$VPNHOST")
+[[ -n "$VPNHOSTIP" ]] || exit_badly "Cannot resolve VPN hostname, aborting"
 
 if [[ "$IP" != "$VPNHOSTIP" ]]; then
   echo "Warning: $VPNHOST resolves to $VPNHOSTIP, not $IP"
@@ -192,7 +190,7 @@ openssl genrsa -out private.pem 2048
 openssl req -new -key private.pem -subj "/C=LK/ST=WP/O=BugZero, Inc./CN=$VPNHOST" -out signingReq.csr
 
 #Generate signed cert
-echo "subjectAltName=IP:$VPNHOST"> a.tmp
+echo "subjectAltName=DNS:$VPNHOST"> a.tmp
 openssl x509 -req -extfile a.tmp -days 365 -in signingReq.csr -CA CA-cert.pem -CAkey CA-key.pem -CAcreateserial -out cert.pem
 rm -f a.tmp
 
