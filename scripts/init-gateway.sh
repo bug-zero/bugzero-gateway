@@ -189,7 +189,9 @@ printf "LK\nWestern Province\nColombo\nSCoReLab\n\n\n\n" | openssl req -new -key
 openssl genrsa -out private.pem 2048
 
 #Generate CSR
-printf "LK\nWestern Province\nColombo\nSCoReLab\n\n$VPNHOST\n\n\n\n" | openssl req -new -key private.pem -out signingReq.csr
+#printf "LK\nWestern Province\nColombo\nSCoReLab\n\n$VPNHOST\n\n\n\n" | openssl req -new -key private.pem -out signingReq.csr
+
+openssl req -new -key private.pem -subj "/C=LK/ST=WP/O=BugZero, Inc./CN=$VPNHOST -reqexts SAN -config <(cat /etc/ssl/openssl.cnf <(printf "[SAN]\nsubjectAltName=$VPNHOST")) -out signingReq.csr
 
 #Generate signed cert
 openssl x509 -req -days 365 -in signingReq.csr -CA CA-cert.pem -CAkey CA-key.pem -CAcreateserial -out cert.pem
@@ -207,7 +209,7 @@ cd $CURDIR
 #certbot certonly --non-interactive --agree-tos --standalone --preferred-challenges http --email $EMAILADDR -d $VPNHOST
 
 ln -f -s /etc/vpncert/$VPNHOST/cert.pem    /etc/ipsec.d/certs/cert.pem
-ln -f -s /etc/vpncert/$VPNHOST/privkey.pem /etc/ipsec.d/private/privkey.pem
+ln -f -s /etc/vpncert/$VPNHOST/private.pem /etc/ipsec.d/private/privkey.pem
 ln -f -s /etc/vpncert/$VPNHOST/CA-cert.pem   /etc/ipsec.d/cacerts/chain.pem
 
 grep -Fq 'bug-zero/bugzero-gateway' /etc/apparmor.d/local/usr.lib.ipsec.charon || echo "
