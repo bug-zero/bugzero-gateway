@@ -56,13 +56,15 @@ DEFAULTVPNHOST=${IP}
 echo "Network interface: ${ETH0ORSIMILAR}"
 echo "External IP: ${IP}"
 echo
-echo "** Note: hostname must resolve to this machine already, to enable Let's Encrypt certificate setup **"
+#echo "** Note: hostname must resolve to this machine already, to enable Let's Encrypt certificate setup **"
 
 read -p "Hostname for VPN (default: ${DEFAULTVPNHOST}): " VPNHOST
 VPNHOST=${VPNHOST:-$DEFAULTVPNHOST}
 
-VPNHOSTIP=$(dig -4 +short "$VPNHOST")
-[[ -n "$VPNHOSTIP" ]] || exit_badly "Cannot resolve VPN hostname, aborting"
+VPNHOSTIP=${VPNHOST}
+
+#VPNHOSTIP=$(dig -4 +short "$VPNHOST")
+#[[ -n "$VPNHOSTIP" ]] || exit_badly "Cannot resolve VPN hostname, aborting"
 
 if [[ "$IP" != "$VPNHOSTIP" ]]; then
   echo "Warning: $VPNHOST resolves to $VPNHOSTIP, not $IP"
