@@ -51,7 +51,7 @@ fi
 #This is used to obtain certificates from Lets Encrypt
 #For testing purpose only
 #We will create own CA later
-DEFAULTVPNHOST=${IP}.sslip.io
+DEFAULTVPNHOST=${IP}
 
 echo "Network interface: ${ETH0ORSIMILAR}"
 echo "External IP: ${IP}"
@@ -174,23 +174,43 @@ echo
 echo "--- Configuring RSA certificates ---"
 echo
 
-mkdir -p /etc/letsencrypt
+CURDIR=$(pwd)
 
-echo 'rsa-key-size = 4096
-pre-hook = /sbin/iptables -I INPUT -p tcp --dport 80 -j ACCEPT
-post-hook = /sbin/iptables -D INPUT -p tcp --dport 80 -j ACCEPT
-renew-hook = /usr/sbin/ipsec reload && /usr/sbin/ipsec secrets
-' > /etc/letsencrypt/cli.ini
+mkdir -p /etc/vpncert/$VPNHOST
+cd /etc/vpncert/$VPNHOST
 
-certbot certonly --non-interactive --agree-tos --standalone --preferred-challenges http --email $EMAILADDR -d $VPNHOST
+#Generate CA
+openssl genrsa -out CA-key.pem 4096
+printf "LK\nWestern Province\nColombo\nSCoReLab\n\n\n\n" | openssl req -new -key CA-key.pem -x509 -days 1000 -out CA-cert.pem
 
-ln -f -s /etc/letsencrypt/live/$VPNHOST/cert.pem    /etc/ipsec.d/certs/cert.pem
-ln -f -s /etc/letsencrypt/live/$VPNHOST/privkey.pem /etc/ipsec.d/private/privkey.pem
-ln -f -s /etc/letsencrypt/live/$VPNHOST/chain.pem   /etc/ipsec.d/cacerts/chain.pem
+#Generate Server Private Key
+openssl genrsa -out private.pem 2048
+
+#Generate CSR
+printf "LK\nWestern Province\nColombo\nSCoReLab\n\n$VPNHOST\n\n\n\n" | openssl req -new -key private.pem -out signingReq.csr
+
+#Generate signed cert
+openssl x509 -req -days 365 -in signingReq.csr -CA CA-cert.pem -CAkey CA-key.pem -CAcreateserial -out cert.pem
+
+cd $CURDIR
+
+#mkdir -p /etc/letsencrypt
+#
+#echo 'rsa-key-size = 4096
+#pre-hook = /sbin/iptables -I INPUT -p tcp --dport 80 -j ACCEPT
+#post-hook = /sbin/iptables -D INPUT -p tcp --dport 80 -j ACCEPT
+#renew-hook = /usr/sbin/ipsec reload && /usr/sbin/ipsec secrets
+#' > /etc/letsencrypt/cli.ini
+#
+#certbot certonly --non-interactive --agree-tos --standalone --preferred-challenges http --email $EMAILADDR -d $VPNHOST
+
+ln -f -s /etc/vpncert/$VPNHOST/cert.pem    /etc/ipsec.d/certs/cert.pem
+ln -f -s /etc/vpncert/$VPNHOST/privkey.pem /etc/ipsec.d/private/privkey.pem
+ln -f -s /etc/vpncert/$VPNHOST/CA-cert.pem   /etc/ipsec.d/cacerts/chain.pem
 
 grep -Fq 'bug-zero/bugzero-gateway' /etc/apparmor.d/local/usr.lib.ipsec.charon || echo "
 # https://github.com/bug-zero/bugzero-gateway
-/etc/letsencrypt/archive/${VPNHOST}/* r,
+/etc/vpncert/* r,
 " >> /etc/apparmor.d/local/usr.lib.ipsec.charon
 
 aa-status --enabled && invoke-rc.d apparmor reload
