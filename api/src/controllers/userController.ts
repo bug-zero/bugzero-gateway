@@ -6,7 +6,19 @@ import {GeneralUserRegistrationParams} from "../types/authApiTypes";
 export class UserController {
 
 
-    public static async getAllUsers() : Promise<MethodResponse>{
+    public static async findUser(userId: string): Promise<MethodResponse> {
+        try {
+            let user = await User.findById(userId);
+            if (!user) {
+                return new MethodResponse(ResponseStatusCode.BadRequest, 'User not found');
+            }
+            return new MethodResponse(ResponseStatusCode.Okay, 'okay', user);
+        } catch (why) {
+            return new MethodResponse(ResponseStatusCode.InternalError, why)
+        }
+    }
+
+    public static async getAllUsers(): Promise<MethodResponse> {
         try {
             let users = await User.find({}).select('user identity');
             return new MethodResponse(ResponseStatusCode.Okay, 'okay', users);
