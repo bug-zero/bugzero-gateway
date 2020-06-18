@@ -4,7 +4,20 @@ import { v4 as uuid } from 'uuid';
 import {GeneralUserRegistrationParams} from "../types/authApiTypes";
 
 export class UserController {
-
+    public static async updateUser(body: any): Promise<MethodResponse> {
+        if (body.updateParameters == undefined) {
+            return new MethodResponse(ResponseStatusCode.BadRequest, 'Missing update information');
+        }
+        try {
+            let updated = await User.findByIdAndUpdate(body.updateParameters._id, body.updateParameters, {new: true});
+            if (!updated) {
+                return new MethodResponse(ResponseStatusCode.BadRequest, 'User not found');
+            }
+            return new MethodResponse(ResponseStatusCode.Okay, 'okay', updated);
+        } catch (why) {
+            return new MethodResponse(ResponseStatusCode.InternalError, why);
+        }
+    }
 
     public static async findUser(userId: string): Promise<MethodResponse> {
         try {
