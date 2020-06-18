@@ -1,13 +1,23 @@
-import User, {IUser} from "../models/userModel"
-import {MethodResponse, ResponseStatusCode} from "../types/commonTypes";
-import {v4 as uuid} from 'uuid';
+import User, { IUser } from "../models/userModel"
+import { MethodResponse, ResponseStatusCode } from "../types/commonTypes";
+import { v4 as uuid } from 'uuid';
 import {GeneralUserRegistrationParams} from "../types/authApiTypes";
 
 export class UserController {
 
-    public static async addUser(userInfo: GeneralUserRegistrationParams): Promise<MethodResponse> {
+
+    public static async getAllUsers() : Promise<MethodResponse>{
         try {
-            let isDuplicate = await User.exists({user: userInfo.user});
+            let users = await User.find({}).select('user identity');
+            return new MethodResponse(ResponseStatusCode.Okay, 'okay', users);
+        } catch (why) {
+            return new MethodResponse(ResponseStatusCode.InternalError, why);
+        }
+    }
+
+    public static async addUser(userInfo: GeneralUserRegistrationParams) : Promise<MethodResponse>{
+        try {
+            let isDuplicate = await User.exists({ user: userInfo.user });
             if (isDuplicate) {
                 return new MethodResponse(ResponseStatusCode.BadRequest, 'The user already exists');
             }
@@ -28,7 +38,7 @@ export class UserController {
             // } catch (why) {
             //     return new MethodResponse(ResponseStatusCode.InternalError, why)
             // }
-        } catch (why) {
+        } catch(why) {
             return new MethodResponse(ResponseStatusCode.InternalError, why)
         }
     }
