@@ -31,5 +31,17 @@ userRouter.post("/api/adduser", async (request, response) => {
     });
 });
 
+userRouter.post("/api/updateidentity", async (request, response) => {
+    let userId = request.body._id;
+    let identity = request.body.identity;
+    let updateResponse: MethodResponse = await UserController.updateUser({
+        _id: userId,
+        identity
+    })
+    response.status(updateResponse.status).send({
+        responseMessage: updateResponse.responseMessage,
+        payload: updateResponse.payload
+    });
+});
 
 //add the api/deleteuser route
