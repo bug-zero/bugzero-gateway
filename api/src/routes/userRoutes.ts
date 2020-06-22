@@ -18,5 +18,18 @@ userRouter.get("/api/userlist", async (_request, response) => {
     });
 });
 
+userRouter.post("/api/adduser", async (request, response) => {
+    let user: string = String(request.body.user);
+    let identity: string = String(request.body.identity);
+    let controllerResponse: MethodResponse = await UserController.addUser({
+        user,
+        identity
+    })
+    response.status(controllerResponse.status).send({
+        responseMessage: controllerResponse.responseMessage,
+        payload: controllerResponse.payload
+    });
+});
+
 
 //add the api/deleteuser route
