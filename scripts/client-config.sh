@@ -115,6 +115,7 @@ cat << EOF > vpn-ios-or-mac.mobileconfig
 </plist>
 EOF
 
+#TODO For self signed certificated client should have certificate in `leftcert=mycert.pem` in ipsec.conf
 cat << EOF > vpn-ubuntu-client.sh
 #!/bin/bash -e
 if [[ \$(id -u) -ne 0 ]]; then echo "Please run as root (e.g. sudo ./path/to/this/script)"; exit 1; fi
