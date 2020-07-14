@@ -11,7 +11,7 @@ export const userRouter: Router = Router();
 //     let addUserResponse: MethodResponse = await UserController.
 // })
 
-userRouter.get("/api/userlist", async (_request, response) => {
+userRouter.get("/userlist", async (_request, response) => {
     let controllerResponse: MethodResponse = await UserController.getAllUsers();
     response.status(controllerResponse.status).send({
         responseMessage: controllerResponse.responseMessage,
@@ -19,7 +19,7 @@ userRouter.get("/api/userlist", async (_request, response) => {
     });
 });
 
-userRouter.post("/api/adduser", async (request, response) => {
+userRouter.post("/adduser", async (request, response) => {
     let user: string = String(request.body.user);
     let identity: string = String(request.body.identity);
     let controllerResponse: MethodResponse = await UserController.addUser({
@@ -32,7 +32,7 @@ userRouter.post("/api/adduser", async (request, response) => {
     });
 });
 
-userRouter.post("/api/updateidentity", async (request, response) => {
+userRouter.post("/updateidentity", async (request, response) => {
     let userId = request.body._id;
     let identity = request.body.identity;
     let updateResponse: MethodResponse = await UserController.updateUser({

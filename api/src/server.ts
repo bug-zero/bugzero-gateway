@@ -28,4 +28,4 @@ app.listen(port, () => {
     logger.info('Server started on port ' + port)
 })
 
-app.use("/user", checkToken, userRouter);
+app.use("/api/user", checkToken, userRouter);
