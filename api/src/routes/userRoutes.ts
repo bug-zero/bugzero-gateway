@@ -50,7 +50,8 @@ userRouter.post("/test", async (request, response) => {
         console.log(request.body.id)
 
     try {
-        await execTest()
+        let a = await execTest()
+        console.log(a)
     } catch (e) {
         response.status(400).send({
             success: false

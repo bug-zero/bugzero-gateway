@@ -30,25 +30,12 @@ export async function connectSSH() {
     }
 }
 
-export async function execTest() {
+export async function execTest(): Promise<any> {
 
     if (!ssh.connection) {
         await connectSSH()
         logger.info("connected to ssh")
     }
-
-    return new Promise((resolve, reject) => {
-        ssh.exec('sudo ls', [], {
-            cwd: '/etc/ssh',
-            onStdout(chunk) {
-                console.log(chunk.toString('utf8'))
-                resolve(chunk)
-            },
-            onStderr(chunk) {
-                console.log(chunk.toString('utf8'))
-                return reject(chunk)
-            },
-        })
-    })
+    return await ssh.execCommand('sudo ls', {cwd: '/home'})
 
 }
