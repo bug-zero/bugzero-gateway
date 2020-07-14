@@ -25,9 +25,9 @@ export function extractBearerTokenFromHeader(header?: string) {
 
 export function checkToken(req: Request, res, next) {
     const bearerHeader = req.headers['authorization'];
-    const token = extractBearerTokenFromHeader(bearerHeader);
 
     try {
+        const token = extractBearerTokenFromHeader(bearerHeader);
         verifyJWT(token)
         next()
     } catch (e) {
