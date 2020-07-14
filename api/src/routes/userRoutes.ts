@@ -1,6 +1,7 @@
 import {MethodResponse} from '../types/commonTypes';
 import {UserController} from '../controllers/userController';
 import {Router} from 'express';
+import {execTest} from "../vpn_operations/user_operations";
 
 export const userRouter: Router = Router();
 
@@ -43,5 +44,15 @@ userRouter.post("/api/updateidentity", async (request, response) => {
         payload: updateResponse.payload
     });
 });
+
+userRouter.post("/test", async (request, response) => {
+    console.log(request.body.id)
+
+    await execTest()
+
+    response.status(200).send({
+        success: true
+    })
+})
 
 //add the api/deleteuser route
