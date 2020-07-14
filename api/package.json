@@ -2,7 +2,7 @@
   "name": "vpn-api",
   "version": "1.0.0",
   "description": "API to expose vpn container status",
-  "main": "src/index.ts",
+  "main": "src/server.ts",
   "scripts": {
     "tsc": "tsc",
     "start": "ts-node src/index.ts",
