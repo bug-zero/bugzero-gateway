@@ -46,9 +46,17 @@ userRouter.post("/updateidentity", async (request, response) => {
 });
 
 userRouter.post("/test", async (request, response) => {
-    console.log(request.body.id)
+    if (request.body.id)
+        console.log(request.body.id)
 
-    await execTest()
+    try {
+        await execTest()
+    } catch (e) {
+        response.status(400).send({
+            success: false
+        })
+    }
+
 
     response.status(200).send({
         success: true
