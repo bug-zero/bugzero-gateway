@@ -1,3 +1,5 @@
+import {ResponseStatusCode} from "../types/commonTypes";
+
 const data = process.env.AUTH_PUBLIC_KEY || 'testbase64';
 let buff = Buffer.alloc(4096, data, 'base64');
 const publicKey = buff.toString('ascii');
@@ -21,3 +23,16 @@ export function extractBearerTokenFromHeader(header?: string) {
     }
 }
 
+export function checkToken(req: Request, res, next) {
+    const bearerHeader = req.headers['authorization'];
+    const token = extractBearerTokenFromHeader(bearerHeader);
+
+    try {
+        verifyJWT(token)
+        next()
+    } catch (e) {
+        console.log(e)
+        res.sendStatus(ResponseStatusCode.Unauthorized);
+    }
+
+}
