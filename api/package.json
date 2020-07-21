@@ -2,10 +2,10 @@
   "name": "vpn-api",
   "version": "1.0.0",
   "description": "API to expose vpn container status",
-  "main": "src/index.ts",
+  "main": "src/server.ts",
   "scripts": {
     "tsc": "tsc",
-    "start": "ts-node src/index.ts",
+    "start": "ts-node src/server.ts",
     "start:watch": "nodemon",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -20,15 +20,18 @@
   },
   "homepage": "https://github.com/lakinduakash/vpn-api#readme",
   "dependencies": {
-    "@types/node": "^13.13.5",
     "@types/mongoose": "^5.7.21",
+    "@types/node": "^13.13.5",
+    "@types/uuid": "^3.4.6",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "log4js": "^6.3.0",
     "mongoose": "^5.9.13",
-    "@types/uuid": "^3.4.6",
+    "node-ssh": "^10.0.2",
     "uuid": "^3.3.3"
   },
   "devDependencies": {

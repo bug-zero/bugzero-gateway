@@ -1,6 +1,7 @@
 import {MethodResponse} from '../types/commonTypes';
 import {UserController} from '../controllers/userController';
 import {Router} from 'express';
+import {execTest} from "../vpn_operations/user_operations";
 
 export const userRouter: Router = Router();
 
@@ -10,7 +11,7 @@ export const userRouter: Router = Router();
 //     let addUserResponse: MethodResponse = await UserController.
 // })
 
-userRouter.get("/api/userlist", async (_request, response) => {
+userRouter.get("/userlist", async (_request, response) => {
     let controllerResponse: MethodResponse = await UserController.getAllUsers();
     response.status(controllerResponse.status).send({
         responseMessage: controllerResponse.responseMessage,
@@ -18,7 +19,7 @@ userRouter.get("/api/userlist", async (_request, response) => {
     });
 });
 
-userRouter.post("/api/adduser", async (request, response) => {
+userRouter.post("/adduser", async (request, response) => {
     let user: string = String(request.body.user);
     let identity: string = String(request.body.identity);
     let controllerResponse: MethodResponse = await UserController.addUser({
@@ -31,7 +32,7 @@ userRouter.post("/api/adduser", async (request, response) => {
     });
 });
 
-userRouter.post("/api/updateidentity", async (request, response) => {
+userRouter.post("/updateidentity", async (request, response) => {
     let userId = request.body._id;
     let identity = request.body.identity;
     let updateResponse: MethodResponse = await UserController.updateUser({
@@ -43,5 +44,24 @@ userRouter.post("/api/updateidentity", async (request, response) => {
         payload: updateResponse.payload
     });
 });
+
+userRouter.post("/test", async (request, response) => {
+    if (request.body.id)
+        console.log(request.body.id)
+
+    try {
+        let a = await execTest()
+        console.log(a)
+    } catch (e) {
+        response.status(400).send({
+            success: false
+        })
+    }
+
+
+    response.status(200).send({
+        success: true
+    })
+})
 
 //add the api/deleteuser route

@@ -7,7 +7,6 @@ export async function dbConnect() {
     }
     try {
         await mongoose.connect(uri, {useNewUrlParser: true, useUnifiedTopology: true, useFindAndModify: false});
-        console.log('mongodb connection successful');
     } catch (error) {
         console.log(error);
     }
