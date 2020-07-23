@@ -11,4 +11,9 @@ This initialises a IPSec VPN sever with IKEv2 authentication.
 - Docker installation
 
 First you should run `init-gateway.sh` script as root user. Then it will prompt some inputs to fill. 
-After that complete VPN server is ready.  
+After that complete VPN server is ready. 
+
+Script will generate CA for you. You need to obtain the certificate signed by that CA. 
+Then client can connect using that certificate.
+
+Additional user authentication can be controlled through API.
