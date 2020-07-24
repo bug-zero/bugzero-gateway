@@ -10,7 +10,6 @@ function exit_badly {
   exit 1
 }
 
-SUDO_USER=$USER
 
 #Script is intend to run inside a ubuntu 18.04+ container
 [[ $(lsb_release -rs) == "18.04" ]] || exit_badly "This script is for Ubuntu 18.04 and up, aborting..."
