@@ -5,7 +5,7 @@ echo
 echo "--- Creating configuration files ---"
 echo
 
-cd /home/${USER}
+cd /home/${SUDO_USER}
 
 cat << EOF > vpn-ios-or-mac.mobileconfig
 <?xml version='1.0' encoding='UTF-8'?>
