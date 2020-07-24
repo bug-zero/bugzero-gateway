@@ -4,7 +4,7 @@ FROM node:12
 ARG expose_port=3000
 
 ARG PORT=3000
-ARG LOG_LEVEL=debug
+ARG LOG_LEVEL=error
 ARG AUTH_PUBLIC_KEY=base64encodedkey
 
 ENV PORT=$PORT
