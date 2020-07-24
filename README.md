@@ -49,3 +49,12 @@ To start connection:
 
 To stop connection:
 `sudo ipsec down ikev2vpn`
+
+#### Android
+
+Download the strongSwan app from the Play Store: https://play.google.com/store/apps/details?id=org.strongswan.android
+
+Server: vpn server address
+VPN Type: IKEv2 EAP (Username/Password)
+Username and password: as configured on the server
+CA certificate: Install CA certificate
