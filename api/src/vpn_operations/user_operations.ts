@@ -41,4 +41,14 @@ export namespace VpnUserOperations {
         return await ssh.execCommand(command, {cwd: '/'})
     }
 
+    export async function updateUser(username, secret): Promise<{ code, signal, stdout, stderr }> {
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
+        }
+
+        const command = `sudo sed -i 's/${username} .*/${username} : EAP "${secret}"/' /etc/ipsec.secrets`
+        return await ssh.execCommand(command, {cwd: '/'})
+    }
+
 }
