@@ -19,7 +19,7 @@ export namespace VpnUserOperations {
             logger.info("connected to ssh")
         }
 
-        const command = `echo '${username} : EAP "${secret}"' | sudo tee -a /etc/ipsec.secrets`
+        const command = `flock -x /ipseclock echo '${username} : EAP "${secret}"' | sudo tee -a /etc/ipsec.secrets`
         return await ssh.execCommand(command, {cwd: '/'})
     }
 
@@ -28,7 +28,7 @@ export namespace VpnUserOperations {
             await connectSSH()
             logger.info("connected to ssh")
         }
-        return await ssh.execCommand('sudo cat /etc/ipsec.secrets', {cwd: '/'})
+        return await ssh.execCommand('sudo flock -s /ipseclock cat /etc/ipsec.secrets', {cwd: '/'})
     }
 
     export async function deleteUser(username): Promise<{ code, signal, stdout, stderr }> {
@@ -37,7 +37,7 @@ export namespace VpnUserOperations {
             logger.info("connected to ssh")
         }
 
-        const command = `sudo sed -i '/${username} .*/d' /etc/ipsec.secrets`
+        const command = `sudo flock -x /ipseclock sed -i '/${username} .*/d' /etc/ipsec.secrets`
         return await ssh.execCommand(command, {cwd: '/'})
     }
 
@@ -47,7 +47,7 @@ export namespace VpnUserOperations {
             logger.info("connected to ssh")
         }
 
-        const command = `sudo sed -i 's/${username} .*/${username} : EAP "${secret}"/' /etc/ipsec.secrets`
+        const command = `sudo flock -x /ipseclock sed -i 's/${username} .*/${username} : EAP "${secret}"/' /etc/ipsec.secrets`
         return await ssh.execCommand(command, {cwd: '/'})
     }
 
