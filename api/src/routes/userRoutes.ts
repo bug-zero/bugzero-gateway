@@ -1,7 +1,9 @@
-import {MethodResponse} from '../types/commonTypes';
+import {MethodResponse, ResponseStatusCode} from '../types/commonTypes';
 import {UserController} from '../controllers/userController';
 import {Router} from 'express';
-import {execTest} from "../vpn_operations/user_operations";
+import {VpnUserOperations} from "../vpn_operations/user_operations";
+import execTest = VpnUserOperations.execTest;
+import {handleAndLogErrors} from "../utilities/logger_util";
 
 export const userRouter: Router = Router();
 
@@ -12,11 +14,26 @@ export const userRouter: Router = Router();
 // })
 
 userRouter.get("/userlist", async (_request, response) => {
-    let controllerResponse: MethodResponse = await UserController.getAllUsers();
-    response.status(controllerResponse.status).send({
-        responseMessage: controllerResponse.responseMessage,
-        payload: controllerResponse.payload
-    });
+    //let controllerResponse: MethodResponse = await UserController.getAllUsers();
+
+    try {
+        let res = await VpnUserOperations.getAllUsers()
+        if (res.code == null || res.code == 0) {
+            response.status(ResponseStatusCode.Okay).send({
+                responseMessage: 'success',
+                payload: res.stdout
+            });
+        } else {
+            response.status(ResponseStatusCode.InternalError).send({
+                responseMessage: 'fail',
+                payload: res.stderr
+            });
+        }
+    } catch (e) {
+        handleAndLogErrors(e, response)
+    }
+
+
 });
 
 userRouter.post("/adduser", async (request, response) => {
