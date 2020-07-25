@@ -1,41 +1,32 @@
-import NodeSSH from 'node-ssh'
 import {logger} from "../server";
+import {connectSSH, ssh} from "../utilities/ssh_conn";
 
-export const ssh = new NodeSSH()
+export namespace VpnUserOperations {
 
+    export async function execTest(): Promise<any> {
 
-export async function connectSSH() {
-
-    if (process.env.SSH_USE_PASSWORD === '1')
-        await ssh.connect({
-            host: process.env.SSH_HOST,
-            username: process.env.SSH_USERNAME,
-            password: process.env.SSH_PASSWORD
-        })
-    else {
-
-        if (!process.env.SSH_PRIVATE_KEY) {
-            throw new Error("You should provide private key to connect ssh")
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
         }
+        return await ssh.execCommand('sudo sleep 5', {cwd: '/home'})
 
-        const data = process.env.SSH_PRIVATE_KEY
-        let buff = Buffer.alloc(4096, data, 'base64');
-        const privateKey = buff.toString('ascii');
-
-        await ssh.connect({
-            host: process.env.SSH_HOST,
-            username: process.env.SSH_USERNAME,
-            privateKey: privateKey
-        })
     }
-}
 
-export async function execTest(): Promise<any> {
-
-    if (!ssh.connection) {
-        await connectSSH()
-        logger.info("connected to ssh")
+    export async function addUser(username, secret): Promise<any> {
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
+        }
+        return await ssh.execCommand('sudo echo ' + username + ' : EAP ' + secret + ' >> /etc/ipsec.secrets', {cwd: '/'})
     }
-    return await ssh.execCommand('sudo sleep 5', {cwd: '/home'})
+
+    export async function getAllUsers(): Promise<{ code, signal, stdout, stderr }> {
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
+        }
+        return await ssh.execCommand('sudo cat /etc/ipsec.secrets', {cwd: '/'})
+    }
 
 }
