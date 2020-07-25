@@ -1,7 +1,7 @@
 import {describe, it} from 'mocha'
 import {expect} from 'chai';
 import {logger} from "../src/server";
-import {connectSSH, ssh} from "../src/vpn_operations/user_operations";
+import {connectSSH, ssh} from "../src/utilities/ssh_conn";
 
 describe("ssh connection ", async () => {
 
