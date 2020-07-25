@@ -39,14 +39,31 @@ userRouter.get("/userlist", async (_request, response) => {
 userRouter.post("/adduser", async (request, response) => {
     let user: string = String(request.body.user);
     let identity: string = String(request.body.identity);
-    let controllerResponse: MethodResponse = await UserController.addUser({
-        user,
-        identity
-    })
-    response.status(controllerResponse.status).send({
-        responseMessage: controllerResponse.responseMessage,
-        payload: controllerResponse.payload
-    });
+    // let controllerResponse: MethodResponse = await UserController.addUser({
+    //     user,
+    //     identity
+    // })
+
+
+    try {
+
+        if (!identity || !user)
+            throw new Error("Invalid inputs")
+
+        let res = await VpnUserOperations.addUser(user, identity)
+        if (res.code == null || res.code == 0) {
+            response.status(ResponseStatusCode.Okay).send({
+                responseMessage: 'success',
+            });
+        } else {
+            response.status(ResponseStatusCode.InternalError).send({
+                responseMessage: 'fail',
+                payload: res.stderr
+            });
+        }
+    } catch (e) {
+        handleAndLogErrors(e, response)
+    }
 });
 
 userRouter.post("/updateidentity", async (request, response) => {
@@ -81,4 +98,27 @@ userRouter.post("/test", async (request, response) => {
     })
 })
 
-//add the api/deleteuser route
+
+userRouter.delete("/delete/:user", async (request, response) => {
+    let user: string = String(request.params.user);
+
+    try {
+
+        if (!user)
+            throw new Error("Invalid inputs")
+
+        let res = await VpnUserOperations.deleteUser(user)
+        if (res.code == null || res.code == 0) {
+            response.status(ResponseStatusCode.Okay).send({
+                responseMessage: 'success',
+            });
+        } else {
+            response.status(ResponseStatusCode.InternalError).send({
+                responseMessage: 'fail',
+                payload: res.stderr
+            });
+        }
+    } catch (e) {
+        handleAndLogErrors(e, response)
+    }
+});

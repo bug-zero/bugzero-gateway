@@ -13,12 +13,14 @@ export namespace VpnUserOperations {
 
     }
 
-    export async function addUser(username, secret): Promise<any> {
+    export async function addUser(username, secret): Promise<{ code, signal, stdout, stderr }> {
         if (!ssh.connection) {
             await connectSSH()
             logger.info("connected to ssh")
         }
-        return await ssh.execCommand('sudo echo ' + username + ' : EAP ' + secret + ' >> /etc/ipsec.secrets', {cwd: '/'})
+
+        const command = `echo '${username} : EAP "${secret}"' | sudo tee -a /etc/ipsec.secrets`
+        return await ssh.execCommand(command, {cwd: '/'})
     }
 
     export async function getAllUsers(): Promise<{ code, signal, stdout, stderr }> {
@@ -27,6 +29,16 @@ export namespace VpnUserOperations {
             logger.info("connected to ssh")
         }
         return await ssh.execCommand('sudo cat /etc/ipsec.secrets', {cwd: '/'})
+    }
+
+    export async function deleteUser(username): Promise<{ code, signal, stdout, stderr }> {
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
+        }
+
+        const command = `sudo sed -i '/${username} .*/d' /etc/ipsec.secrets`
+        return await ssh.execCommand(command, {cwd: '/'})
     }
 
 }
