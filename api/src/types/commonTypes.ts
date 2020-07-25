@@ -4,9 +4,9 @@ export class MethodResponse {
     payload?: any;
 
     constructor(status: number, responseMessage: string, payload ?: any) {
-        this.status = status,
-            this.responseMessage = responseMessage;
-        this.payload = payload;
+        this.status = status
+        this.responseMessage = responseMessage
+        this.payload = payload
     };
 }
 
