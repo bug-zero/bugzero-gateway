@@ -1,7 +1,7 @@
 import NodeSSH from 'node-ssh'
 import {logger} from "../server";
 
-const ssh = new NodeSSH()
+export const ssh = new NodeSSH()
 
 
 export async function connectSSH() {
@@ -36,6 +36,6 @@ export async function execTest(): Promise<any> {
         await connectSSH()
         logger.info("connected to ssh")
     }
-    return await ssh.execCommand('sudo ls', {cwd: '/home'})
+    return await ssh.execCommand('sudo sleep 5', {cwd: '/home'})
 
 }
