@@ -2,13 +2,13 @@ FROM node:12
 
 # Expose port via args, default set
 ARG expose_port=3000
-
-ARG PORT=3000
-ARG LOG_LEVEL=error
 ARG AUTH_PUBLIC_KEY=base64encodedkey
 
 ENV PORT=$PORT
 ENV LOG_LEVEL=$LOG_LEVEL
+
+ARG PORT=3000
+ARG LOG_LEVEL=error
 ENV AUTH_PUBLIC_KEY=$AUTH_PUBLIC_KEY
 
 #Connection parameters for vpn host
