@@ -178,7 +178,6 @@ echo
 CURDIR=$(pwd)
 
 mkdir -p /etc/vpncert/$VPNHOST
-cd /etc/vpncert/$VPNHOST
 
 DISABLE_CERT_GEN=0
 CA_PATH=""
@@ -228,9 +227,19 @@ if [ ${DISABLE_CERT_GEN} = 1 ]
     exit 3
   fi
 
-  #TODO copy related files
+
+  cp -f $CERT_PATH /etc/ipsec.d/certs/cert.pem
+  cp -f $PRIVATE_KEY_PATH /etc/ipsec.d/private/privkey.pem
+  cp -f $CA_PATH /etc/ipsec.d/cacerts/chain.pem
+
+  ln -f -s /etc/vpncert/$VPNHOST/cert.pem    /etc/ipsec.d/certs/cert.pem
+  ln -f -s /etc/vpncert/$VPNHOST/private.pem /etc/ipsec.d/private/privkey.pem
+  ln -f -s /etc/vpncert/$VPNHOST/CA-cert.pem   /etc/ipsec.d/cacerts/chain.pem
+
 elif [ ${DISABLE_CERT_GEN} = 0 ]
 then
+
+cd /etc/vpncert/$VPNHOST
 #Generate CA
 openssl genrsa -out CA-key.pem 4096
 printf "LK\nWestern Province\nColombo\nSCoReLab\n\n\n\n" | openssl req -new -key CA-key.pem -x509 -days 1000 -out CA-cert.pem
