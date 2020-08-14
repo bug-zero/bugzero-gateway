@@ -12,7 +12,7 @@ export const userRouter: Router = Router();
 //     let addUserResponse: MethodResponse = await UserController.
 // })
 
-userRouter.get("/userlist", async (_request, response) => {
+userRouter.get("/list", async (_request, response) => {
     //let controllerResponse: MethodResponse = await UserController.getAllUsers();
 
     try {
