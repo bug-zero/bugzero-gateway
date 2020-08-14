@@ -180,6 +180,57 @@ CURDIR=$(pwd)
 mkdir -p /etc/vpncert/$VPNHOST
 cd /etc/vpncert/$VPNHOST
 
+DISABLE_CERT_GEN=0
+CA_PATH=""
+PRIVATE_KEY_PATH=""
+CERT_PATH=""
+for ((i=1;i<=$#;i++));
+do
+
+    if [ ${!i} = "--disable-cert-gen" ]
+    then DISABLE_CERT_GEN=1
+
+    elif [ ${!i} = "--private-key" ];
+    then ((i++))
+        PRIVATE_KEY_PATH=${!i};
+
+    elif [ ${!i} = "--ca" ];
+    then ((i++))
+        CA_PATH=${!i};
+
+    elif [ ${!i} = "--cert" ];
+    then ((i++))
+        CERT_PATH=${!i};
+    fi
+
+done;
+
+
+if [ ${DISABLE_CERT_GEN} = 1 ]
+ then
+ [ -z "$PRIVATE_KEY_PATH" ] && exit 2
+
+[ -z "$PRIVATE_KEY_PATH" ] && exit_badly "specify private key file using --private-key "
+  if [ ! -f $PRIVATE_KEY_PATH ]; then
+    echo "specify valid private key file"
+    exit 3
+  fi
+
+  [ -z "$CA_PATH" ] && exit_badly "specify CA file file using --ca "
+  if [ ! -f $CA_PATH ]; then
+    echo "specify valid CA file"
+    exit 3
+  fi
+
+  [ -z "$CERT_PATH" ] && exit_badly "specify cert file using --cert "
+  if [ ! -f $CERT_PATH ]; then
+    echo "specify valid cert file"
+    exit 3
+  fi
+
+  #TODO copy related files
+elif [ ${DISABLE_CERT_GEN} = 0 ]
+then
 #Generate CA
 openssl genrsa -out CA-key.pem 4096
 printf "LK\nWestern Province\nColombo\nSCoReLab\n\n\n\n" | openssl req -new -key CA-key.pem -x509 -days 1000 -out CA-cert.pem
@@ -210,6 +261,8 @@ cd $CURDIR
 ln -f -s /etc/vpncert/$VPNHOST/cert.pem    /etc/ipsec.d/certs/cert.pem
 ln -f -s /etc/vpncert/$VPNHOST/private.pem /etc/ipsec.d/private/privkey.pem
 ln -f -s /etc/vpncert/$VPNHOST/CA-cert.pem   /etc/ipsec.d/cacerts/chain.pem
+fi
+
 
 grep -Fq 'bug-zero/bugzero-gateway' /etc/apparmor.d/local/usr.lib.ipsec.charon || echo "
 # https://github.com/bug-zero/bugzero-gateway
