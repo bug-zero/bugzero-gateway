@@ -239,7 +239,7 @@ if [ ${DISABLE_CERT_GEN} = 1 ]
 elif [ ${DISABLE_CERT_GEN} = 0 ]
 then
 
-cd /etc/vpncert/$VPNHOST
+cd /etc/vpncert/$VPNHOST || exit
 #Generate CA
 openssl genrsa -out CA-key.pem 4096
 printf "LK\nWestern Province\nColombo\nSCoReLab\n\n\n\n" | openssl req -new -key CA-key.pem -x509 -days 1000 -out CA-cert.pem
@@ -255,7 +255,7 @@ echo "subjectAltName=DNS:$VPNHOST"> a.tmp
 openssl x509 -req -extfile a.tmp -days 365 -in signingReq.csr -CA CA-cert.pem -CAkey CA-key.pem -CAcreateserial -out cert.pem
 rm -f a.tmp
 
-cd $CURDIR
+cd "$CURDIR" || exit
 
 #mkdir -p /etc/letsencrypt
 #
