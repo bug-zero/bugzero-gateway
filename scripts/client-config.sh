@@ -119,7 +119,7 @@ if [[ \$(id -u) -ne 0 ]]; then echo "Please run as root (e.g. sudo ./path/to/thi
 
 #Exit when error - first argument is the reason of the error
 function exit_badly {
-  echo $1
+  echo \$1
   exit 1
 }
 
@@ -130,24 +130,24 @@ CERT_PATH=""
 CA_PATH=""
 SKIP_CERT=0
 
-for ((i=1;i<=$#;i++));
+for ((i=1;i<=\$#;i++));
 do
-    if [ ${!i} = "--skip-cert" ]
+    if [ \${!i} = "--skip-cert" ]
     then SKIP_CERT=1
 
-    elif [ ${!i} = "-u" ];
+    elif [ \${!i} = "-u" ];
     then ((i++))
-        VPNUSERNAME=${!i};
+        VPNUSERNAME=\${!i};
 
-    elif [ ${!i} = "-c" ];
+    elif [ \${!i} = "-c" ];
     then ((i++))
-        CERT_PATH=${!i};
+        CERT_PATH=\${!i};
 
-    elif [ ${!i} = "-a" ];
+    elif [ \${!i} = "-a" ];
     then ((i++))
-        CA_PATH=${!i};
+        CA_PATH=\${!i};
 
-    elif [ ${!i} = "-h" ];
+    elif [ \${!i} = "-h" ];
     then
       echo "usage with cert config: -u <username> -c <certificate_path> -a <CA_path>"
       echo "usage without cert config: -u <username> --skip-cert"
@@ -156,22 +156,22 @@ do
 
 done;
 
-if [ ${SKIP_CERT} = 0 ]
+if [ \${SKIP_CERT} = 0 ]
  then
 
- [ -z "$CERT_PATH" ] && exit_badly "specify cert file using -c <certificate path>. Use -h for help"
-  if [ ! -f $CERT_PATH ]; then
+ [ -z "\$CERT_PATH" ] && exit_badly "specify cert file using -c <certificate path>. Use -h for help"
+  if [ ! -f \${CERT_PATH} ]; then
     exit_badly "specify valid cert file"
   fi
 
-[ -z "$CA_PATH" ] && exit_badly "specify ca cert file using -a <CA path>. Use -h for help"
-  if [ ! -f $CA_PATH ]; then
+[ -z "\$CA_PATH" ] && exit_badly "specify ca cert file using -a <CA path>. Use -h for help"
+  if [ ! -f \${CA_PATH} ]; then
     exit_badly "specify valid cert file"
   fi
 
 fi
 
-[ -z "$VPNUSERNAME" ] && exit_badly "specify vpn username with -u <username>. Use -h for help"
+[ -z "\$VPNUSERNAME" ] && exit_badly "specify vpn username with -u <username>. Use -h for help"
 
 
 while true; do
@@ -188,11 +188,11 @@ apt-get install -y libcharon-standard-plugins || true  # 17.04+ only
 
 ln -f -s /etc/ssl/certs/DST_Root_CA_X3.pem /etc/ipsec.d/cacerts/
 
-if [ ${SKIP_CERT} = 0 ]
+if [ \${SKIP_CERT} = 0 ]
  then
  #Copy certificates
-  cp -f CA_PATH /etc/ipsec.d/cacerts/CA-cert.pem
-  cp -f CERT_PATH /etc/ipsec.d/certs/${CERT_NAME}
+  cp -f \${CA_PATH} /etc/ipsec.d/cacerts/CA-cert.pem
+  cp -f \${CERT_PATH} /etc/ipsec.d/certs/${CERT_NAME}
 
   grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.conf || echo "
 # https://github.com/bug-zero/bugzero-gateway
