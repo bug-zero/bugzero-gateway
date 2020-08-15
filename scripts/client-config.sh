@@ -118,10 +118,54 @@ cat << EOF > vpn-ubuntu-client.sh
 #!/bin/bash -e
 if [[ \$(id -u) -ne 0 ]]; then echo "Please run as root (e.g. sudo ./path/to/this/script)"; exit 1; fi
 
-#Rename to your certificate name
+#Exit when error - first argument is the reason of the error
+function exit_badly {
+  echo $1
+  exit 1
+}
+
 CERT_NAME="cert.pem"
 
-read -p "VPN username (same as entered on server): " VPNUSERNAME
+VPNUSERNAME=""
+CERT_PATH=""
+CA_PATH=""
+
+for ((i=1;i<=$#;i++));
+do
+
+    if [ ${!i} = "-u" ];
+    then ((i++))
+        VPNUSERNAME=${!i};
+
+    elif [ ${!i} = "-c" ];
+    then ((i++))
+        CERT_PATH=${!i};
+
+    elif [ ${!i} = "-a" ];
+    then ((i++))
+        CA_PATH=${!i};
+
+    elif [ ${!i} = "-h" ];
+    then
+      echo "usage: -u <username> -c <certificate_path> -a <CA_path>"
+      exit 0
+    fi
+
+done;
+
+[ -z "$CERT_PATH" ] && exit_badly "specify cert file using -c <certificate path>. Use -h for help"
+  if [ ! -f $CERT_PATH ]; then
+    exit_badly "specify valid cert file"
+  fi
+
+[ -z "$CA_PATH" ] && exit_badly "specify ca cert file using -a <CA path>. Use -h for help"
+  if [ ! -f $CA_PATH ]; then
+    exit_badly "specify valid cert file"
+  fi
+
+[ -z "$VPNUSERNAME" ] && exit_badly "specify vpn username with -u <username>. Use -h for help"
+
+
 while true; do
 read -s -p "VPN password (same as entered on server): " VPNPASSWORD
 echo
@@ -135,6 +179,11 @@ apt-get install -y strongswan libstrongswan-standard-plugins libcharon-extra-plu
 apt-get install -y libcharon-standard-plugins || true  # 17.04+ only
 
 ln -f -s /etc/ssl/certs/DST_Root_CA_X3.pem /etc/ipsec.d/cacerts/
+
+#Copy certificates
+
+cp -f CA_PATH /etc/ipsec.d/cacerts/CA-cert.pem
+cp -f CERT_PATH /etc/ipsec.d/certs/${CERT_NAME}
 
 grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.conf || echo "
 # https://github.com/bug-zero/bugzero-gateway
