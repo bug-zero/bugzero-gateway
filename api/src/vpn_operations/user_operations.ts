@@ -1,41 +1,56 @@
-import NodeSSH from 'node-ssh'
 import {logger} from "../server";
+import {connectSSH, ssh} from "../utilities/ssh_conn";
 
-const ssh = new NodeSSH()
+const lockFile = '/ipseclock'
 
+export namespace VpnUserOperations {
 
-export async function connectSSH() {
+    export async function execTest(): Promise<any> {
 
-    if (process.env.SSH_USE_PASSWORD === '1')
-        await ssh.connect({
-            host: process.env.SSH_HOST,
-            username: process.env.SSH_USERNAME,
-            password: process.env.SSH_PASSWORD
-        })
-    else {
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
+        }
+        return await ssh.execCommand('sudo sleep 5', {cwd: '/home'})
 
-        if (!process.env.SSH_PRIVATE_KEY) {
-            throw new Error("You should provide private key to connect ssh")
+    }
+
+    export async function addUser(username, secret): Promise<{ code, signal, stdout, stderr }> {
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
         }
 
-        const data = process.env.SSH_PRIVATE_KEY
-        let buff = Buffer.alloc(4096, data, 'base64');
-        const privateKey = buff.toString('ascii');
-
-        await ssh.connect({
-            host: process.env.SSH_HOST,
-            username: process.env.SSH_USERNAME,
-            privateKey: privateKey
-        })
+        const command = `flock -x ${lockFile} echo '${username} : EAP "${secret}"' | sudo tee -a /etc/ipsec.secrets`
+        return await ssh.execCommand(command, {cwd: '/'})
     }
-}
 
-export async function execTest(): Promise<any> {
-
-    if (!ssh.connection) {
-        await connectSSH()
-        logger.info("connected to ssh")
+    export async function getAllUsers(): Promise<{ code, signal, stdout, stderr }> {
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
+        }
+        return await ssh.execCommand(`sudo flock -s ${lockFile} cat /etc/ipsec.secrets`, {cwd: '/'})
     }
-    return await ssh.execCommand('sudo ls', {cwd: '/home'})
+
+    export async function deleteUser(username): Promise<{ code, signal, stdout, stderr }> {
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
+        }
+
+        const command = `sudo flock -x ${lockFile} sed -i '/${username} .*/d' /etc/ipsec.secrets`
+        return await ssh.execCommand(command, {cwd: '/'})
+    }
+
+    export async function updateUser(username, secret): Promise<{ code, signal, stdout, stderr }> {
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
+        }
+
+        const command = `sudo flock -x ${lockFile} sed -i 's/${username} .*/${username} : EAP "${secret}"/' /etc/ipsec.secrets`
+        return await ssh.execCommand(command, {cwd: '/'})
+    }
 
 }

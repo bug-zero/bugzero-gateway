@@ -5,7 +5,6 @@ echo
 echo "--- Creating configuration files ---"
 echo
 
-cd /home/${USER}
 
 cat << EOF > vpn-ios-or-mac.mobileconfig
 <?xml version='1.0' encoding='UTF-8'?>
@@ -115,10 +114,12 @@ cat << EOF > vpn-ios-or-mac.mobileconfig
 </plist>
 EOF
 
-#TODO For self signed certificated client should have certificate in `leftcert=mycert.pem` in ipsec.conf
 cat << EOF > vpn-ubuntu-client.sh
 #!/bin/bash -e
 if [[ \$(id -u) -ne 0 ]]; then echo "Please run as root (e.g. sudo ./path/to/this/script)"; exit 1; fi
+
+#Rename to your certificate name
+CERT_NAME="cert.pem"
 
 read -p "VPN username (same as entered on server): " VPNUSERNAME
 while true; do
@@ -147,6 +148,7 @@ conn ikev2vpn
         esp=aes256gcm16-ecp521!
         leftsourceip=%config
         leftauth=eap-mschapv2
+        leftcert=${CERT_NAME}
         eap_identity=\${VPNUSERNAME}
         right=${VPNHOST}
         rightauth=pubkey
