@@ -1,14 +1,15 @@
 import {Router} from "express";
-import {VpnUserOperations} from "../vpn_operations/user_operations";
+
 import {ResponseStatusCode} from "../types/commonTypes";
 import {handleAndLogErrors} from "../utilities/logger_util";
+import {VpnUtilOperations} from "../vpn_operations/util_operations";
 
 export const utilRouter: Router = Router();
 
 utilRouter.get("/status", async (_request, response) => {
 
     try {
-        let res = await VpnUserOperations.getConnectionStatus()
+        let res = await VpnUtilOperations.getConnectionStatus()
         if (res.code == null || res.code == 0) {
             response.status(ResponseStatusCode.Okay).send({
                 responseMessage: 'success',
