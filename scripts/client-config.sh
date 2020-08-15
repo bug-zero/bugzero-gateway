@@ -5,7 +5,7 @@ echo
 echo "--- Creating configuration files ---"
 echo
 
-cat <<EOF >vpn-ios-or-mac.mobileconfig
+cat <<EOF >/etc/vpn-ios-or-mac.mobileconfig
 <?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE plist PUBLIC '-//Apple//DTD PLIST 1.0//EN' 'http://www.apple.com/DTDs/PropertyList-1.0.dtd'>
 <plist version='1.0'>
@@ -113,7 +113,7 @@ cat <<EOF >vpn-ios-or-mac.mobileconfig
 </plist>
 EOF
 
-cat <<EOF >vpn-ubuntu-client.sh
+cat <<EOF >/etc/vpn-ubuntu-client.sh
 #!/bin/bash -e
 if [[ \$(id -u) -ne 0 ]]; then echo "Please run as root (e.g. sudo ./path/to/this/script)"; exit 1; fi
 
@@ -246,17 +246,17 @@ grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.secrets || echo "
 " >> /etc/ipsec.secrets
 
 ipsec restart
-sleep 5  # is there a better way?
+#sleep 5  # is there a better way?
 
-echo "Bringing up VPN ..."
-ipsec up ikev2vpn
-ipsec statusall
+#echo "Bringing up VPN ..."
+#ipsec up ikev2vpn
+#ipsec statusall
 
-echo
-echo -n "Testing IP address ... "
-VPNIP=\$(dig -4 +short ${VPNHOST})
-ACTUALIP=\$(curl -s ifconfig.co)
-if [[ "\$VPNIP" == "\$ACTUALIP" ]]; then echo "PASSED (IP: \${VPNIP})"; else echo "FAILED (IP: \${ACTUALIP}, VPN IP: \${VPNIP})"; fi
+#echo
+#echo -n "Testing IP address ... "
+#VPNIP=\$(dig -4 +short ${VPNHOST})
+#ACTUALIP=\$(curl -s ifconfig.co)
+#if [[ "\$VPNIP" == "\$ACTUALIP" ]]; then echo "PASSED (IP: \${VPNIP})"; else echo "FAILED (IP: \${ACTUALIP}, VPN IP: \${VPNIP})"; fi
 
 echo
 echo "To disconnect: ipsec down ikev2vpn"
@@ -264,7 +264,7 @@ echo "To resconnect: ipsec up ikev2vpn"
 echo "To connect automatically: change auto=add to auto=start in /etc/ipsec.conf"
 EOF
 
-cat <<EOF >vpn-instructions.txt
+cat <<EOF >/etc/vpn-instructions.txt
 == iOS and macOS ==
 
 A configuration profile is attached as vpn-ios-or-mac.mobileconfig — simply open this to install. You will be asked for your device PIN or password, and your VPN username and password, not necessarily in that order.
