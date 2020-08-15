@@ -10,6 +10,7 @@ import {userRouter} from "./routes/userRoutes";
 import {checkToken} from "./utilities/auth";
 //import {dbConnect} from "./utilities/dbConnection";
 import {getLogger} from 'log4js'
+import {utilRouter} from "./routes/utilRoutes";
 
 //Enable global logger
 export const logger = getLogger();
@@ -29,3 +30,4 @@ app.listen(port, () => {
 })
 
 app.use("/api/user", checkToken, userRouter);
+app.use("/api/utils", checkToken, utilRouter);
