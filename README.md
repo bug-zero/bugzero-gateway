@@ -33,9 +33,24 @@ After successful execution a VPN server is up and client configuration will be w
 
 #### Ubuntu
 
-First you need to obtain the `vpn-ubuntu-client.sh`. Run the script as root user.
+First you need to obtain the `vpn-ubuntu-client.sh`.
 
-Then you need to copy the certificates that you get from the server to following directories.
+**Automatic certificate configuration**
+
+You need to have certificate file, and the CA certificate file.
+Then you can run the client by executing following,
+`sudo ./vpn-ubuntu-client.sh -u username -c certificate_path -a CA_path`
+
+Password will be prompted when running.
+
+**Manual Certificate configuration**
+
+You can choose to skip automatic custom certificate configurations by typeing,
+
+`sudo ./vpn-ubuntu-client.sh -u username --skip-cert`
+
+If you choose to skip certificate configuration and still need to configure them later, do the following.
+You need to copy the certificates that you get from the server to following directories.
 
 - `CA-cert.pem` to `/etc/ipsec.d/cacerts/` (File name does not matter)
 - `cert.pem` to `/etc/ipsec.d/certs/` (File name maters. If you rename cert.pem in to any other name change `leftcert=<new_cert_name>` in `/etc/ipsec.conf`)
