@@ -53,5 +53,13 @@ export namespace VpnUserOperations {
         return await ssh.execCommand(command, {cwd: '/'})
     }
 
+    export async function getConnectionStatus(): Promise<{ code, signal, stdout, stderr }> {
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
+        }
+        const command = `sudo ipsec statusall`
+        return await ssh.execCommand(command, {cwd: '/'})
+    }
 
 }
