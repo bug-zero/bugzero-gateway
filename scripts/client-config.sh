@@ -129,11 +129,14 @@ CERT_NAME="cert.pem"
 VPNUSERNAME=""
 CERT_PATH=""
 CA_PATH=""
+SKIP_CERT=0
 
 for ((i=1;i<=$#;i++));
 do
+    if [ ${!i} = "--skip-cert" ]
+    then SKIP_CERT=1
 
-    if [ ${!i} = "-u" ];
+    elif [ ${!i} = "-u" ];
     then ((i++))
         VPNUSERNAME=${!i};
 
@@ -147,13 +150,17 @@ do
 
     elif [ ${!i} = "-h" ];
     then
-      echo "usage: -u <username> -c <certificate_path> -a <CA_path>"
+      echo "usage with cert config: -u <username> -c <certificate_path> -a <CA_path>"
+      echo "usage without cert config: -u <username> --skip-cert"
       exit 0
     fi
 
 done;
 
-[ -z "$CERT_PATH" ] && exit_badly "specify cert file using -c <certificate path>. Use -h for help"
+if [ ${SKIP_CERT} = 0 ]
+ then
+
+ [ -z "$CERT_PATH" ] && exit_badly "specify cert file using -c <certificate path>. Use -h for help"
   if [ ! -f $CERT_PATH ]; then
     exit_badly "specify valid cert file"
   fi
@@ -162,6 +169,8 @@ done;
   if [ ! -f $CA_PATH ]; then
     exit_badly "specify valid cert file"
   fi
+
+fi
 
 [ -z "$VPNUSERNAME" ] && exit_badly "specify vpn username with -u <username>. Use -h for help"
 
@@ -180,12 +189,13 @@ apt-get install -y libcharon-standard-plugins || true  # 17.04+ only
 
 ln -f -s /etc/ssl/certs/DST_Root_CA_X3.pem /etc/ipsec.d/cacerts/
 
-#Copy certificates
+if [ ${SKIP_CERT} = 0 ]
+ then
+ #Copy certificates
+  cp -f CA_PATH /etc/ipsec.d/cacerts/CA-cert.pem
+  cp -f CERT_PATH /etc/ipsec.d/certs/${CERT_NAME}
 
-cp -f CA_PATH /etc/ipsec.d/cacerts/CA-cert.pem
-cp -f CERT_PATH /etc/ipsec.d/certs/${CERT_NAME}
-
-grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.conf || echo "
+  grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.conf || echo "
 # https://github.com/bug-zero/bugzero-gateway
 conn ikev2vpn
         ikelifetime=60m
@@ -205,6 +215,31 @@ conn ikev2vpn
         rightsubnet=0.0.0.0/0
         auto=add  # or auto=start to bring up automatically
 " >> /etc/ipsec.conf
+
+else
+
+grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.conf || echo "
+# https://github.com/bug-zero/bugzero-gateway
+conn ikev2vpn
+        ikelifetime=60m
+        keylife=20m
+        rekeymargin=3m
+        keyingtries=1
+        keyexchange=ikev2
+        ike=aes256gcm16-prfsha384-ecp521!
+        esp=aes256gcm16-ecp521!
+        leftsourceip=%config
+        leftauth=eap-mschapv2
+        eap_identity=\${VPNUSERNAME}
+        right=${VPNHOST}
+        rightauth=pubkey
+        rightid=@${VPNHOST}
+        rightsubnet=0.0.0.0/0
+        auto=add  # or auto=start to bring up automatically
+" >> /etc/ipsec.conf
+
+fi
+
 
 grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.secrets || echo "
 # https://github.com/bug-zero/bugzero-gateway

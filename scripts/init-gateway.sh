@@ -207,7 +207,6 @@ done;
 
 if [ ${DISABLE_CERT_GEN} = 1 ]
  then
- [ -z "$PRIVATE_KEY_PATH" ] && exit 2
 
 [ -z "$PRIVATE_KEY_PATH" ] && exit_badly "specify private key file using --private-key "
   if [ ! -f $PRIVATE_KEY_PATH ]; then
