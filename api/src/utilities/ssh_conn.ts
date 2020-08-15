@@ -18,13 +18,17 @@ export async function connectSSH() {
         }
 
         const data = process.env.SSH_PRIVATE_KEY
-        let buff = Buffer.alloc(4096, data, 'base64');
-        const privateKey = buff.toString('ascii');
+        if (data) {
+            let buff = Buffer.from(data, 'base64');
+            const privateKey = buff.toString();
 
-        await ssh.connect({
-            host: process.env.SSH_HOST,
-            username: process.env.SSH_USERNAME,
-            privateKey: privateKey
-        })
+            await ssh.connect({
+                host: process.env.SSH_HOST,
+                username: process.env.SSH_USERNAME,
+                privateKey: privateKey
+            })
+        }
+
+
     }
 }
