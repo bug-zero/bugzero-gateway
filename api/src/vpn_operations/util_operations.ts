@@ -29,4 +29,12 @@ export namespace VpnUtilOperations {
         return await ssh.execCommand(command, {cwd: '/'})
     }
 
+    export async function getUbuntuClientConfig(): Promise<{ code, signal, stdout, stderr }> {
+        if (!ssh.connection) {
+            await connectSSH()
+            logger.info("connected to ssh")
+        }
+        const command = `cat /etc/vpn-ubuntu-client.sh`
+        return await ssh.execCommand(command, {cwd: '/'})
+    }
 }
