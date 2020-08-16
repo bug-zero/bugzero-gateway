@@ -206,7 +206,7 @@ conn ikev2vpn
         esp=aes256gcm16-ecp521!
         leftsourceip=%config
         leftauth=eap-mschapv2
-        leftcert=${CERT_NAME}
+        leftcert=\${CERT_NAME}
         eap_identity=\${VPNUSERNAME}
         right=${VPNHOST}
         rightauth=pubkey
