@@ -5,8 +5,7 @@ echo
 echo "--- Creating configuration files ---"
 echo
 
-
-cat << EOF > vpn-ios-or-mac.mobileconfig
+cat <<EOF >/etc/vpn-ios-or-mac.mobileconfig
 <?xml version='1.0' encoding='UTF-8'?>
 <!DOCTYPE plist PUBLIC '-//Apple//DTD PLIST 1.0//EN' 'http://www.apple.com/DTDs/PropertyList-1.0.dtd'>
 <plist version='1.0'>
@@ -114,14 +113,67 @@ cat << EOF > vpn-ios-or-mac.mobileconfig
 </plist>
 EOF
 
-cat << EOF > vpn-ubuntu-client.sh
+cat <<EOF >/etc/vpn-ubuntu-client.sh
 #!/bin/bash -e
 if [[ \$(id -u) -ne 0 ]]; then echo "Please run as root (e.g. sudo ./path/to/this/script)"; exit 1; fi
 
-#Rename to your certificate name
+#Exit when error - first argument is the reason of the error
+function exit_badly {
+  echo \$1
+  exit 1
+}
+
 CERT_NAME="cert.pem"
 
-read -p "VPN username (same as entered on server): " VPNUSERNAME
+VPNUSERNAME=""
+CERT_PATH=""
+CA_PATH=""
+SKIP_CERT=0
+
+for ((i=1;i<=\$#;i++));
+do
+    if [ \${!i} = "--skip-cert" ]
+    then SKIP_CERT=1
+
+    elif [ \${!i} = "-u" ];
+    then ((i++))
+        VPNUSERNAME=\${!i};
+
+    elif [ \${!i} = "-c" ];
+    then ((i++))
+        CERT_PATH=\${!i};
+
+    elif [ \${!i} = "-a" ];
+    then ((i++))
+        CA_PATH=\${!i};
+
+    elif [ \${!i} = "-h" ];
+    then
+      echo "usage with cert config: -u <username> -c <certificate_path> -a <CA_path>"
+      echo "usage without cert config: -u <username> --skip-cert"
+      exit 0
+    fi
+
+done;
+
+if [ \${SKIP_CERT} = 0 ]
+ then
+
+ [ -z "\$CERT_PATH" ] && exit_badly "specify cert file using -c <certificate path>. Use -h for help"
+  if [ ! -f \${CERT_PATH} ]; then
+    exit_badly "specify valid cert file"
+  fi
+
+[ -z "\$CA_PATH" ] && exit_badly "specify ca cert file using -a <CA path>. Use -h for help"
+  if [ ! -f \${CA_PATH} ]; then
+    exit_badly "specify valid cert file"
+  fi
+
+fi
+
+[ -z "\$VPNUSERNAME" ] && exit_badly "specify vpn username with -u <username>. Use -h for help"
+
+
 while true; do
 read -s -p "VPN password (same as entered on server): " VPNPASSWORD
 echo
@@ -136,6 +188,35 @@ apt-get install -y libcharon-standard-plugins || true  # 17.04+ only
 
 ln -f -s /etc/ssl/certs/DST_Root_CA_X3.pem /etc/ipsec.d/cacerts/
 
+if [ \${SKIP_CERT} = 0 ]
+ then
+ #Copy certificates
+  cp -f \${CA_PATH} /etc/ipsec.d/cacerts/CA-cert.pem
+  cp -f \${CERT_PATH} /etc/ipsec.d/certs/${CERT_NAME}
+
+  grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.conf || echo "
+# https://github.com/bug-zero/bugzero-gateway
+conn ikev2vpn
+        ikelifetime=60m
+        keylife=20m
+        rekeymargin=3m
+        keyingtries=1
+        keyexchange=ikev2
+        ike=aes256gcm16-prfsha384-ecp521!
+        esp=aes256gcm16-ecp521!
+        leftsourceip=%config
+        leftauth=eap-mschapv2
+        leftcert=\${CERT_NAME}
+        eap_identity=\${VPNUSERNAME}
+        right=${VPNHOST}
+        rightauth=pubkey
+        rightid=@${VPNHOST}
+        rightsubnet=0.0.0.0/0
+        auto=add  # or auto=start to bring up automatically
+" >> /etc/ipsec.conf
+
+else
+
 grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.conf || echo "
 # https://github.com/bug-zero/bugzero-gateway
 conn ikev2vpn
@@ -148,7 +229,6 @@ conn ikev2vpn
         esp=aes256gcm16-ecp521!
         leftsourceip=%config
         leftauth=eap-mschapv2
-        leftcert=${CERT_NAME}
         eap_identity=\${VPNUSERNAME}
         right=${VPNHOST}
         rightauth=pubkey
@@ -157,23 +237,26 @@ conn ikev2vpn
         auto=add  # or auto=start to bring up automatically
 " >> /etc/ipsec.conf
 
+fi
+
+
 grep -Fq 'bug-zero/bugzero-gateway' /etc/ipsec.secrets || echo "
 # https://github.com/bug-zero/bugzero-gateway
 \${VPNUSERNAME} : EAP \"\${VPNPASSWORD}\"
 " >> /etc/ipsec.secrets
 
 ipsec restart
-sleep 5  # is there a better way?
+#sleep 5  # is there a better way?
 
-echo "Bringing up VPN ..."
-ipsec up ikev2vpn
-ipsec statusall
+#echo "Bringing up VPN ..."
+#ipsec up ikev2vpn
+#ipsec statusall
 
-echo
-echo -n "Testing IP address ... "
-VPNIP=\$(dig -4 +short ${VPNHOST})
-ACTUALIP=\$(curl -s ifconfig.co)
-if [[ "\$VPNIP" == "\$ACTUALIP" ]]; then echo "PASSED (IP: \${VPNIP})"; else echo "FAILED (IP: \${ACTUALIP}, VPN IP: \${VPNIP})"; fi
+#echo
+#echo -n "Testing IP address ... "
+#VPNIP=\$(dig -4 +short ${VPNHOST})
+#ACTUALIP=\$(curl -s ifconfig.co)
+#if [[ "\$VPNIP" == "\$ACTUALIP" ]]; then echo "PASSED (IP: \${VPNIP})"; else echo "FAILED (IP: \${ACTUALIP}, VPN IP: \${VPNIP})"; fi
 
 echo
 echo "To disconnect: ipsec down ikev2vpn"
@@ -181,7 +264,7 @@ echo "To resconnect: ipsec up ikev2vpn"
 echo "To connect automatically: change auto=add to auto=start in /etc/ipsec.conf"
 EOF
 
-cat << EOF > vpn-instructions.txt
+cat <<EOF >/etc/vpn-instructions.txt
 == iOS and macOS ==
 
 A configuration profile is attached as vpn-ios-or-mac.mobileconfig — simply open this to install. You will be asked for your device PIN or password, and your VPN username and password, not necessarily in that order.
@@ -229,7 +312,7 @@ A bash script to set up strongSwan as a VPN client is attached as vpn-ubuntu-cli
 
 EOF
 
-EMAIL=$USER@$VPNHOST mutt -s "VPN configuration" -a vpn-ios-or-mac.mobileconfig vpn-ubuntu-client.sh -- $EMAILADDR < vpn-instructions.txt
+EMAIL=$USER@$VPNHOST mutt -s "VPN configuration" -a vpn-ios-or-mac.mobileconfig vpn-ubuntu-client.sh -- $EMAILADDR <vpn-instructions.txt
 
 echo
 echo "--- How to connect ---"

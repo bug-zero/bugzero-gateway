@@ -21,7 +21,7 @@ export namespace VpnUserOperations {
             logger.info("connected to ssh")
         }
 
-        const command = `flock -x ${lockFile} echo '${username} : EAP "${secret}"' | sudo tee -a /etc/ipsec.secrets`
+        const command = `flock -x ${lockFile} echo '${username} : EAP "${secret}"' | sudo tee -a /etc/ipsec.secrets && sudo ipsec secrets`
         return await ssh.execCommand(command, {cwd: '/'})
     }
 
@@ -39,7 +39,7 @@ export namespace VpnUserOperations {
             logger.info("connected to ssh")
         }
 
-        const command = `sudo flock -x ${lockFile} sed -i '/${username} .*/d' /etc/ipsec.secrets`
+        const command = `sudo flock -x ${lockFile} sed -i '/${username} .*/d' /etc/ipsec.secrets && sudo ipsec secrets`
         return await ssh.execCommand(command, {cwd: '/'})
     }
 
@@ -49,8 +49,9 @@ export namespace VpnUserOperations {
             logger.info("connected to ssh")
         }
 
-        const command = `sudo flock -x ${lockFile} sed -i 's/${username} .*/${username} : EAP "${secret}"/' /etc/ipsec.secrets`
+        const command = `sudo flock -x ${lockFile} sed -i 's/${username} .*/${username} : EAP "${secret}"/' /etc/ipsec.secrets && sudo ipsec secrets`
         return await ssh.execCommand(command, {cwd: '/'})
     }
+
 
 }

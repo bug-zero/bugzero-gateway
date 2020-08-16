@@ -8,14 +8,15 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import {userRouter} from "./routes/userRoutes";
 import {checkToken} from "./utilities/auth";
-import {dbConnect} from "./utilities/dbConnection";
+//import {dbConnect} from "./utilities/dbConnection";
 import {getLogger} from 'log4js'
+import {utilRouter} from "./routes/utilRoutes";
 
 //Enable global logger
 export const logger = getLogger();
 logger.level = process.env.LOG_LEVEL || 'info';
 
-dbConnect().then(_ => logger.info("Database connected")).catch(err => logger.error(err))
+//dbConnect().then(_ => logger.info("Database connected")).catch(err => logger.error(err))
 
 const app = express();
 const port = process.env.PORT || 3000
@@ -29,3 +30,4 @@ app.listen(port, () => {
 })
 
 app.use("/api/user", checkToken, userRouter);
+app.use("/api/utils", checkToken, utilRouter);
