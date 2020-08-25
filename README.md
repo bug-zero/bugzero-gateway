@@ -21,12 +21,11 @@ since you need to send those files to client to configure VPN connection to serv
 
 Additional user authentication can be controlled through API.
 
-After successful execution a VPN server is up and client configuration will be written to current directory. Following files will e available.
+After successful execution, a VPN server is up and client configuration will be written to the `/etc`. Following files will e available.
 
-- `vpn-instructions.txt`
-- `vpn-ios-or-mac.mobileconfig`
-- `vpn-ubuntu-client.sh`
-
+- `/etc/vpn-instructions.txt`
+- `/etc/vpn-ios-or-mac.mobileconfig`
+- `/etc/vpn-ubuntu-client.sh`
 
 
 ## Client configuration
