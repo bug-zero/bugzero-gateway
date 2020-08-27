@@ -30,4 +30,4 @@ app.listen(port, () => {
 })
 
 app.use("/api/user", checkToken, userRouter);
-app.use("/api/utils", checkToken, utilRouter);
+app.use("/api/util", checkToken, utilRouter);
