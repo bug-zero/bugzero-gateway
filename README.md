@@ -1,9 +1,11 @@
 # bugzero-gateway
-Bug Zero Gateway is a VPN and that help to provide researcher to access private programs, and also program owner can monitor researcher activities for findings. 
+Bug Zero Gateway is a VPN and that help to provide researcher to access private programs, and also program owner can monitor researcher activities for findings.
+
+More comprehensive reference can be found in [Wiki Pages](https://github.com/bug-zero/bugzero-gateway/wiki)
 
 ## Initialising VPN server
 
-This initialises a IPSec VPN sever with IKEv2 authentication.
+This initialises a IPSec VPN server with IKEv2 authentication.
 
 **Requirements**
 
@@ -44,7 +46,7 @@ Password will be prompted when running.
 
 **Manual Certificate configuration**
 
-You can choose to skip automatic custom certificate configurations by typeing,
+You can choose to skip automatic custom certificate configurations by typing,
 
 `sudo ./vpn-ubuntu-client.sh -u username --skip-cert`
 
@@ -56,7 +58,7 @@ You need to copy the certificates that you get from the server to following dire
 
 **Note: Disable IPv6 since this only supports IPv4. Otherwise traffic will be routed through IPv6**
 
-Now client is ready to connect to server.
+Now the client is ready to connect to the server.
 
 To start connection:
 `sudo ipsec up ikev2vpn`
